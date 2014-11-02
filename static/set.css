@@ -1,0 +1,12 @@
+.row {  
+  padding: 15px;
+  }
+  
+ .highlight {
+	border-style: solid;
+	border-color: black;
+ }
+ 
+ .tileImg {
+	border-width: 5px;
+ }

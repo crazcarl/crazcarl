@@ -1,0 +1,28 @@
+{% include 'header.html' %}
+
+<body>
+	{% include 'top_bar.html' %}
+	<div class="container">
+		<h1>{{person}}</h1>
+		<div class ="row">
+			<form method="POST">
+				<span class="col-md-6">
+				Progress Notes<br>
+				<textarea rows=10 cols=30 name="progress"></textarea><br>
+				</span>
+				<span class="col-md-6">
+				Priorities<br>
+				<textarea rows=10 cols=30 name="priorities">{{priorities}}</textarea><br>
+				</span><br>
+				<div class="form-group">
+					<label for="Password">Password</label>
+					<input type="password" class="form-control" id="password" placeholder="Enter password" name="password">
+				</div>
+				<div class="form-group">
+					<input type='submit' value='Create Player'></input>
+				</div>
+				{{error}}
+			</form>
+		</div>
+	</div>
+</body>

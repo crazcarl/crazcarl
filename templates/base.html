@@ -1,0 +1,25 @@
+{% include 'header.html' %}
+
+<body>
+	{% include 'top_bar.html' %}
+	<div class="container">
+		<div class ="row">
+		{% include 'left_sidebar.html' %}
+		<span class="col-md-8 bloglist">
+			<h1 id="header" class="text-center">Lay 100 Bricks</h1>
+
+			<!-- A loop here for blog posts! -->
+			<div class="blogpost">
+			{% for bp in bps %}
+				<h2> {{bp.title}} </h2>
+
+				<div class="content"> {{bp.content|safe}} </div>
+
+				<div> Posted by: {{bp.author}} on {{bp.created}} </div>
+
+			{% endfor %}
+			</div>
+		</span>
+		</div>
+	</div>
+</body>

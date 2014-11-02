@@ -1,0 +1,12 @@
+<span class="col-md-4">
+	<ul class="sidebar_list">
+	{% for p in people %}
+		<h2><a href='/player/{{p.name}}'>{{p.name}}</a></h2>
+	<div class="progress">
+		<div class="progress-bar" role="progressbar" aria-valuenow="{{p.progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{p.progress}}%;">
+		{{p.progress}}%
+		</div>
+	</div>
+	{% endfor %}
+	</ul>
+</span>
