@@ -2,6 +2,20 @@
 // Right now this is going to work in continuous mode
 $(document).ready(function() {
 
+
+	initialize();
+
+	// Code to run when tile clicked
+	$('.tileImg').click(cellClick);
+	
+	// Code to run when reset clicked
+	$('#reset').click(resetClick);
+	
+	console.log('sets: '+ setCheck());
+
+});
+
+var initialize = function() {
 	// get 12 random numbers
 	var cards = []
 	cards = generRand(cards,12);
@@ -11,18 +25,17 @@ $(document).ready(function() {
 	for (var i = 0; i < 12; i++) {
 		$('#tile'+i).attr('src','/static/imgs/'+pad(cards[i],2)+'.gif');
 	}
-	
-
-	// Code to run when tile clicked
-	$('.tileImg').click(cellClick);
-
-});
+}
 
 
 var cellClick = function() {
 	
 	// (un)highlight the cell
 	$('#'+this.id).toggleClass('highlight');
+	
+	// get rid of the message (if one is there) and set score text to black
+	$('#message').delay(33).fadeOut();
+	$('#score').css({'color':'black'});
 	
 	if ($('.highlight').length > 2) {
 		
@@ -42,7 +55,6 @@ var cellClick = function() {
 		$('.highlight').removeClass('highlight');
 		
 		if (success) {
-			alert('yeah, buddy!');
 			
 			var newAr = [];
 			// Get current list of cards being used
@@ -51,35 +63,52 @@ var cellClick = function() {
 				newAr.push(tempInt);
 			});
 			
-			console.log('Current list is: ');
-			console.log(newAr);
 			
 			// Pick three new elements randomly from list and swap out with previous
 			generRand(newAr,15);
 			
-			console.log('With new elements; ');
-			console.log(newAr);
-			console.log(setAr);
 			
 			var tile0 = newAr.indexOf(setAr[0]);
-			console.log('tile0: '+ tile0);
 			$('#tile'+tile0).attr('src','/static/imgs/'+pad(newAr[12],2)+'.gif');
 			
 			var tile1 = newAr.indexOf(setAr[1]);
-			console.log('tile1: '+ tile1);
 			$('#tile'+tile1).attr('src','/static/imgs/'+pad(newAr[13],2)+'.gif');
 			
 			var tile2 = newAr.indexOf(setAr[2]);
-			console.log('tile2: '+ tile2);
 			$('#tile'+tile2).attr('src','/static/imgs/'+pad(newAr[14],2)+'.gif');
 			
 			// Update score
+			score = parseInt($('#score').text()) + 1;
+			$('#score').text(score);
+			
+			$('#message').text('yeah, buddy!').css({'color':'green'});
+			$('#message').delay(45).fadeIn('fast');
 		}
 		else {
-			alert('try harder');
+			$('#message').text('try harder').css({'color':'red'});
+			$('#message').delay(45).fadeIn('fast');
 		}
 	}
 };
+
+
+var resetClick = function() {
+
+	sets = setCheck();
+	if (sets) {
+		message = 'you bitch';
+		$('#score').delay(100).text(0).css({'color':'red'}).fadeIn('slow');
+	}
+	else
+		message = 'good call';
+	$('#message').text(message).css({'color':'red'});
+	$('#message').delay(45).fadeIn('fast');
+	
+	initialize();
+	
+	
+
+}
 
 var evaluate = function(setAr) {
 
@@ -91,29 +120,25 @@ var evaluate = function(setAr) {
 	if ((fill(setAr[0]) == fill(setAr[1]) && fill(setAr[1]) != fill(setAr[2])) || 
 	    (fill(setAr[0]) != fill(setAr[1]) && fill(setAr[1]) == fill(setAr[2])) ||
 		(fill(setAr[0]) == fill(setAr[2]) && fill(setAr[0]) != fill(setAr[1])))
-		{  console.log('fill fail');
-		   success = false;        }
+		{  success = false;        }
 	
 	// evaluate qty
 	if ((qty(setAr[0]) == qty(setAr[1]) && qty(setAr[1]) != qty(setAr[2])) || 
 	    (qty(setAr[0]) != qty(setAr[1]) && qty(setAr[1]) == qty(setAr[2])) || 
 		(qty(setAr[0]) == qty(setAr[2]) && qty(setAr[0]) != qty(setAr[1])))
-		{  console.log('qty fail');
-		   success = false;        }
+		{  success = false;        }
 		
 	// evaluate shape
 	if ((shape(setAr[0]) == shape(setAr[1]) && shape(setAr[1]) != shape(setAr[2])) || 
 	    (shape(setAr[0]) != shape(setAr[1]) && shape(setAr[1]) == shape(setAr[2])) ||
 		(shape(setAr[0]) == shape(setAr[2]) && shape(setAr[0]) != shape(setAr[1])))
-		{  console.log('shape fail');
-		   success = false;        }
+		{   success = false;        }
 
 	// evaluate color
 	if ((color(setAr[0]) == color(setAr[1]) && color(setAr[1]) != color(setAr[2])) || 
 	    (color(setAr[0]) != color(setAr[1]) && color(setAr[1]) == color(setAr[2])) ||
 		(color(setAr[0]) == color(setAr[2]) && color(setAr[0]) != color(setAr[1])))
-		{  console.log('color fail');
-		   success = false;        }
+		{   success = false;        }
 	
 	
 	return success;
@@ -196,7 +221,7 @@ function pad(num, size) {
 }
 
 var setCheck = function() {
-	
+	var count = 0;
 	for (var i = 0; i < $('.tileImg').length; i++) {
 		for (var j = i + 1; j < $('.tileImg').length; j++) {
 			for (var k = j + 1; k < $('.tileImg').length; k++) {
@@ -205,8 +230,11 @@ var setCheck = function() {
 			var tile2 = parseInt(String($('#tile'+j).attr('src').slice(13,15)));
 			var tile3 = parseInt(String($('#tile'+k).attr('src').slice(13,15)));
 			
+			if (evaluate([tile1,tile2,tile3]))
+				count += 1;
 			}
 		}
 	}
+	return count;
 	
 }
