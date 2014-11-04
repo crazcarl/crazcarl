@@ -5,11 +5,14 @@ $(document).ready(function() {
 
 	initialize();
 
-	// Code to run when tile clicked
+	// tile clicked
 	$('.tileImg').click(cellClick);
 	
-	// Code to run when reset clicked
+	// reset clicked
 	$('#reset').click(resetClick);
+	
+	// submit score clicked
+	$('#subScore').click(scoreClick);
 	
 	console.log('sets: '+ setCheck());
 
@@ -40,12 +43,10 @@ var cellClick = function() {
 	if ($('.highlight').length > 2) {
 		
 		// Get all three elements values and current tile #
-		setAr = [];
-		tileAr = [];
+		var setAr = [];
 		$('.highlight').each(function() {
 			var tempInt = parseInt(String($(this).attr('src').slice(13,15))); //TODO: update when using static images
 			setAr.push(tempInt);
-			tileAr.push($(this).id);
 		});
 		
 	
@@ -109,6 +110,68 @@ var resetClick = function() {
 	
 
 }
+
+var scoreClick = function() {
+
+	// get current score and name
+	var score = parseInt($('#score').text());
+	var name = $('#username').val();
+	
+	if (score < 1 || !name) {
+		console.log(score);
+		console.log(name);
+		$('#message').text('ugggh..');
+		return 0;
+	}
+	
+	var data = {'score':score,'name':name};
+	
+	// put it on server if in top 25
+	 $.ajax({
+		 type: "POST",
+		 url: "/set",
+		 data: data,
+		 dataType: 'json',
+		 success: function(data) {
+			if (data['result']) {
+				$('#message').text('so good!');
+				$('#score').delay(100).text(0).css({'color':'green'}).fadeIn('slow');
+				initialize();
+			}
+			else {
+				$('#message').text('not good enough').css({'color':'red'}).fadeIn('slow');
+			}
+			// Either way, rebuild leaderboard
+			buildLB(data);
+			
+			
+		 }
+	 });
+}
+
+
+var buildLB = function(data) {
+
+	// Empty table body
+	$('#leaderBody').empty();
+	
+	console.log('buildlB: ');
+	console.log(data);
+	
+	var lb = data['lb'];
+	for (var i = 0; i < lb.length; i++) {
+		console.log('i: '+i);
+		console.log(lb[i]);
+		var name = lb[i][0];
+		var score = lb[i][1];
+		var htmlStr = '<tr><td>' + name + '</td>' + '<td>' + score + '</td></tr>';
+		console.log('htmlstr: '+ htmlStr);
+		$('#leaderboard > tbody:last').append(htmlStr);
+	}
+
+}
+
+
 
 var evaluate = function(setAr) {
 

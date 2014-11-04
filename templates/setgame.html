@@ -1,11 +1,11 @@
-
-
 {% include 'header.html' %}
 <link rel="stylesheet" href="/static/set.css" type="text/css">
 <script src="/static/set.js"></script>
 <body>
 	{% include 'top_bar.html' %}
 	<div class="container">
+		<h1> Continuous Set <small><a href="http://www.setgame.com/sites/default/files/instructions/SET%20INSTRUCTIONS%20-%20ENGLISH.pdf">How to play </a></small></h1>
+		<div class="jumbotron">
 		<div class="row">
 		  <div class="tile col-md-2 col-xs-2"><img src="" class="img-thumbnail tileImg" id="tile0"></div>
 		  <div class="tile col-md-2 col-xs-2"><img src="" class="img-thumbnail tileImg" id="tile1"></div>
@@ -28,11 +28,33 @@
 		</div>
 
 			
-		<div class="row">
-			<div class="col-md-2 col-xs-2 h1">Score: <span id="score">0</span></div>
-			<div class="col-md-3 col-md-offset-1 col-xs-offset-1 col-xs-3 h1"><div id="message"></div></div>
-			<div class="col-md-2 col-xs-2"><button class="btn btn-default" id="reset">Reset board</button></div>
+		<div class="row" id="scoreRow">
+			<div class="col-md-2 col-xs-2 h3">Score: <span id="score">0</span></div>
+			<div class="col-md-3 col-md-offset-1 col-xs-offset-1 col-xs-3 h3"><div id="message"></div></div>
+			<div class="col-md-2 col-xs-2"><button class="btn btn-danger" id="reset">Reset board</button></div>
 		</div>
+		<div class="row">
+			<input class="cod-md-3 col-xs-3" placeholder="name" id="username"></input>
+			<div class="col-md-3 col-xs-3"><button class="btn btn-success" id="subScore">Submit Score</button></div>
+		</div></div>
+		<div class="h1 col-md-3 row">Leaderboard</div>
 		
+		
+		<div class="row">
+			<table class="table" id="leaderboard">
+				<thead>
+					<th>Name</th>
+					<th>Score</th>
+				</thead>
+				<tbody id="leaderBody">
+				{% for l in lb %}
+					<tr>
+						<td>{{l.name}}</td>
+						<td>{{l.score}}</td>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
 	</div>
 </body>
