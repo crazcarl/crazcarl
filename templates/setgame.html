@@ -5,38 +5,55 @@
 	{% include 'top_bar.html' %}
 	<div class="container">
 		<h1> Continuous Set <small><a href="http://www.setgame.com/sites/default/files/instructions/SET%20INSTRUCTIONS%20-%20ENGLISH.pdf">How to play </a></small></h1>
-		<div class="jumbotron">
 		<div class="row">
-		  <div class="tile col-md-2 col-xs-2"><img src="" class="img-thumbnail tileImg" id="tile0"></div>
-		  <div class="tile col-md-2 col-xs-2"><img src="" class="img-thumbnail tileImg" id="tile1"></div>
-		  <div class="tile col-md-2 col-xs-2"><img src="" class="img-thumbnail tileImg" id="tile2"></div>
-		  <div class="tile col-md-2 col-xs-2"><img src="" class="img-thumbnail tileImg" id="tile3"></div>
+		<div class="jumbotron col-md-8 col-xs-8">
+		<div class="row">
+		  <div class="tile col-md-3 col-xs-3"><img src="" class="img-thumbnail tileImg" id="tile0"></div>
+		  <div class="tile col-md-3 col-xs-3"><img src="" class="img-thumbnail tileImg" id="tile1"></div>
+		  <div class="tile col-md-3 col-xs-3"><img src="" class="img-thumbnail tileImg" id="tile2"></div>
+		  <div class="tile col-md-3 col-xs-3"><img src="" class="img-thumbnail tileImg" id="tile3"></div>
+		</div>
+		
+
+		<div class="row">
+		  <div class="tile col-md-3 col-xs-3"><img src="" class="img-thumbnail tileImg" id="tile4"></div>
+		  <div class="tile col-md-3 col-xs-3"><img src="" class="img-thumbnail tileImg" id="tile5"></div>
+		  <div class="tile col-md-3 col-xs-3"><img src="" class="img-thumbnail tileImg" id="tile6"></div>
+		  <div class="tile col-md-3 col-xs-3"><img src="" class="img-thumbnail tileImg" id="tile7"></div>
 		</div>
 
 		<div class="row">
-		  <div class="tile col-md-2 col-xs-2"><img src="" class="img-thumbnail tileImg" id="tile4"></div>
-		  <div class="tile col-md-2 col-xs-2"><img src="" class="img-thumbnail tileImg" id="tile5"></div>
-		  <div class="tile col-md-2 col-xs-2"><img src="" class="img-thumbnail tileImg" id="tile6"></div>
-		  <div class="tile col-md-2 col-xs-2"><img src="" class="img-thumbnail tileImg" id="tile7"></div>
-		</div>
-
-		<div class="row">
-		  <div class="tile col-md-2 col-xs-2"><img src="" class="img-thumbnail tileImg" id="tile8"></div>
-		  <div class="tile col-md-2 col-xs-2"><img src="" class="img-thumbnail tileImg" id="tile9"></div>
-		  <div class="tile col-md-2 col-xs-2"><img src="" class="img-thumbnail tileImg" id="tile10"></div>
-		  <div class="tile col-md-2 col-xs-2"><img src="" class="img-thumbnail tileImg" id="tile11"></div>
+		  <div class="tile col-md-3 col-xs-3"><img src="" class="img-thumbnail tileImg" id="tile8"></div>
+		  <div class="tile col-md-3 col-xs-3"><img src="" class="img-thumbnail tileImg" id="tile9"></div>
+		  <div class="tile col-md-3 col-xs-3"><img src="" class="img-thumbnail tileImg" id="tile10"></div>
+		  <div class="tile col-md-3 col-xs-3"><img src="" class="img-thumbnail tileImg" id="tile11"></div>
 		</div>
 
 			
 		<div class="row" id="scoreRow">
-			<div class="col-md-2 col-xs-2 h3">Score: <span id="score">0</span></div>
-			<div class="col-md-3 col-md-offset-1 col-xs-offset-1 col-xs-3 h3"><div id="message"></div></div>
-			<div class="col-md-2 col-xs-2"><button class="btn btn-danger" id="reset">Reset board</button></div>
+			<div class="col-md-3 col-xs-3 h3">Score: <span id="score">0</span></div>
+			<div class="col-md-5 col-md-offset-1 col-xs-offset-1 col-xs-4 h3"><div id="message"></div></div>
+			<div class="col-md-3 col-xs-3"><button class="btn btn-danger" id="reset" data-target="#lineModal">Reset board</button></div>
 		</div>
 		<div class="row">
-			<input class="cod-md-3 col-xs-3" placeholder="name" id="username"></input>
-			<div class="col-md-3 col-xs-3"><button class="btn btn-success" id="subScore">Submit Score</button></div>
-		</div></div>
+			<input class="cod-md-4 col-xs-4" placeholder="name" id="username"></input>
+			<div class="col-md-4 col-xs-4"><button class="btn btn-success" id="subScore">Submit Score</button></div>
+		</div>
+		</div>
+		<div class="col-md-4 col-xs-4">
+				<table class="table table-responsive" id="setsTable">
+				<thead>
+					<th>Set</th>
+					<th>Seconds</th>
+					<th>Points</th>
+				</thead>
+				<tbody id="sets">
+					<tr>
+					</tr>
+				</tbody>
+			</table>
+		  </div>
+		</div>
 		<div class="h1 col-md-3 row">Leaderboard</div>
 		
 		
@@ -56,5 +73,19 @@
 				</tbody>
 			</table>
 		</div>
+		
+<div class="modal fade" id="resetModal" tabindex="-1" role="dialog" aria-labelledby="resetModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">close</button>
+            <h4 class="modal-title" id="myModalLabel">You Bitch</h4>
+            </div>
+            <div class="modal-body">
+                <h3>Here is one that you missed</h3>
+            </div>
+    </div>
+  </div>
+</div>
 	</div>
 </body>

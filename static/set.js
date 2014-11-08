@@ -87,9 +87,18 @@ var cellClick = function() {
 			var points = 1;
 			
 			// Log set to screen
-			var setStr = '<tr><td>' + 'imgs' + '</td>'   // imgs
-			setStr +=    '<td>' + time + '</td>'	     // seconds
-			setStr +=    '<td>' + points + '</td></tr>'  // points
+			
+			var img1 = '/static/imgs/' + pad(setAr[0],2);
+			var img2 = '/static/imgs/' + pad(setAr[1],2);
+			var img3 = '/static/imgs/' + pad(setAr[2],2);
+			
+			var imgs = '<img style=\'width:33%\' class=\'img-rounded\' src=\''+ img1 + '.gif\'></img>'
+			imgs    += '<img style=\'width:33%\' class=\'img-rounded\' src=\''+ img2 + '.gif\'></img>'
+			imgs    += '<img style=\'width:33%\' class=\'img-rounded\' src=\''+ img3 + '.gif\'></img>'
+			
+			var setStr = '<tr><td style=\'width:50%\'>' + imgs + '</td>'     // imgs
+			setStr +=    '<td style=\'width:25%\'>' + time + '</td>'	     // seconds
+			setStr +=    '<td style=\'width:25%\'>' + points + '</td></tr>'  // points
 			$('#setsTable > tbody:last').append(setStr);
 			
 			// Update overall score
@@ -110,10 +119,16 @@ var cellClick = function() {
 
 var resetClick = function() {
 
-	sets = setCheck();
-	if (sets) {
+	var sets = setCheck();
+	if (sets.length > 0) {
+		// Update Message
 		message = 'you bitch';
 		$('#score').delay(100).text(0).css({'color':'red'}).fadeIn('slow');
+		
+		// Update Modal Pop-up
+		$('#resetModal').modal('toggle')
+		
+		
 	}
 	else
 		message = 'good call';
@@ -122,6 +137,7 @@ var resetClick = function() {
 	
 	initialize();
 	
+	setStart = Date.now();  // Reset Timer
 	
 
 }
@@ -295,7 +311,7 @@ function pad(num, size) {
 }
 
 var setCheck = function() {
-	var count = 0;
+	var sets = [];
 	for (var i = 0; i < $('.tileImg').length; i++) {
 		for (var j = i + 1; j < $('.tileImg').length; j++) {
 			for (var k = j + 1; k < $('.tileImg').length; k++) {
@@ -305,10 +321,10 @@ var setCheck = function() {
 			var tile3 = parseInt(String($('#tile'+k).attr('src').slice(13,15)));
 			
 			if (evaluate([tile1,tile2,tile3]))
-				count += 1;
+				sets.push([tile1,tile2,tile3]);
 			}
 		}
 	}
-	return count;
+	return sets;
 	
 }
