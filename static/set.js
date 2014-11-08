@@ -88,13 +88,7 @@ var cellClick = function() {
 			
 			// Log set to screen
 			
-			var img1 = '/static/imgs/' + pad(setAr[0],2);
-			var img2 = '/static/imgs/' + pad(setAr[1],2);
-			var img3 = '/static/imgs/' + pad(setAr[2],2);
-			
-			var imgs = '<img style=\'width:33%\' class=\'img-rounded\' src=\''+ img1 + '.gif\'></img>'
-			imgs    += '<img style=\'width:33%\' class=\'img-rounded\' src=\''+ img2 + '.gif\'></img>'
-			imgs    += '<img style=\'width:33%\' class=\'img-rounded\' src=\''+ img3 + '.gif\'></img>'
+			var imgs = imageHandler(setAr[0],setAr[1],setAr[2]);
 			
 			var setStr = '<tr><td style=\'width:50%\'>' + imgs + '</td>'     // imgs
 			setStr +=    '<td style=\'width:25%\'>' + time + '</td>'	     // seconds
@@ -128,7 +122,13 @@ var resetClick = function() {
 		// Update Modal Pop-up
 		$('#resetModal').modal('toggle')
 		
+		$('#missed').empty()
 		
+		for (var i = 0; i < sets.length; i++) {
+			var imgs = imageHandler(sets[i][0],sets[i][1],sets[i][2]);
+			var missedStr = '<div>' + imgs + '</div><br>'
+			$('#missed').append(missedStr);
+		}
 	}
 	else
 		message = 'good call';
@@ -140,6 +140,19 @@ var resetClick = function() {
 	setStart = Date.now();  // Reset Timer
 	
 
+}
+
+// Take 3 images. Returns string of <img> tags
+var imageHandler = function(img1,img2,img3) {
+	var i1 = '/static/imgs/' + pad(img1,2);
+	var i2 = '/static/imgs/' + pad(img2,2);
+	var i3 = '/static/imgs/' + pad(img3,2);
+	
+	var imgs = '<img style=\'width:33%\' class=\'img-rounded\' src=\''+ i1 + '.gif\'></img>';
+	imgs    += '<img style=\'width:33%\' class=\'img-rounded\' src=\''+ i2 + '.gif\'></img>';
+	imgs    += '<img style=\'width:33%\' class=\'img-rounded\' src=\''+ i3 + '.gif\'></img>';
+	
+	return imgs;
 }
 
 var scoreClick = function() {
