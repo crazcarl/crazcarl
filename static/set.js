@@ -14,7 +14,7 @@ $(document).ready(function() {
 	// submit score clicked
 	$('#subScore').click(scoreClick);
 	
-	console.log('sets: '+ setCheck());
+	setStart = Date.now();
 
 });
 
@@ -78,12 +78,27 @@ var cellClick = function() {
 			var tile2 = newAr.indexOf(setAr[2]);
 			$('#tile'+tile2).attr('src','/static/imgs/'+pad(newAr[14],2)+'.gif');
 			
-			// Update score
+			// Calculate time
+			var time = (Date.now() - setStart) / 1000;
+			
+			setStart = Date.now();  // Reset Timer
+			
+			// Calculate points
+			var points = 1;
+			
+			// Log set to screen
+			var setStr = '<tr><td>' + 'imgs' + '</td>'   // imgs
+			setStr +=    '<td>' + time + '</td>'	     // seconds
+			setStr +=    '<td>' + points + '</td></tr>'  // points
+			$('#setsTable > tbody:last').append(setStr);
+			
+			// Update overall score
 			score = parseInt($('#score').text()) + 1;
 			$('#score').text(score);
 			
 			$('#message').text('yeah, buddy!').css({'color':'green'});
 			$('#message').delay(45).fadeIn('fast');
+			
 		}
 		else {
 			$('#message').text('try harder').css({'color':'red'});
@@ -155,17 +170,13 @@ var buildLB = function(data) {
 	// Empty table body
 	$('#leaderBody').empty();
 	
-	console.log('buildlB: ');
-	console.log(data);
-	
 	var lb = data['lb'];
 	for (var i = 0; i < lb.length; i++) {
-		console.log('i: '+i);
-		console.log(lb[i]);
 		var name = lb[i][0];
+		name = $('<i></i>').text(name).html();
 		var score = lb[i][1];
 		var htmlStr = '<tr><td>' + name + '</td>' + '<td>' + score + '</td></tr>';
-		console.log('htmlstr: '+ htmlStr);
+		console.log(htmlStr);
 		$('#leaderboard > tbody:last').append(htmlStr);
 	}
 

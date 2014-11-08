@@ -8,10 +8,18 @@ class SetHandler(AppHandler):
 		self.render('setgame.html',lb=lb)
 		
 	def post(self):
-		score = int(self.request.get('score'))
-		name = self.request.get('name')
+		score = self.request.get('score')
 		
 		lb = LeaderBoard.all().order('-score').fetch(25)
+		try:
+			int(score)
+			score = int(score)
+		except:
+			return self.finished(lb,0)
+		
+		name = self.request.get('name')
+		
+		
 		
 		# First 25, add to LB
 		if len(lb) < 25:
