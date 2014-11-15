@@ -1,4 +1,4 @@
-
+var score = 0;
 // Right now this is going to work in continuous mode
 $(document).ready(function() {
 
@@ -95,12 +95,21 @@ var cellClick = function() {
 			setStr +=    '<td style=\'width:25%\'>' + points + '</td></tr>'  // points
 			$('#setsTable > tbody:last').append(setStr);
 			
-			// Update overall score
-			score = parseInt($('#score').text()) + 1;
-			$('#score').text(score);
+			// Verify legit set
+			var data = {};
+			$.ajax({
+				type: "POST",
+				url: "/checkset",
+				data: data,
+				dataType: 'json',
+				success: function(data) {
+					score = data['score'];
+					$('#score').text(score);
+					$('#message').text('yeah, buddy!').css({'color':'green'});
+					$('#message').delay(45).fadeIn('fast');
+				}
+			});
 			
-			$('#message').text('yeah, buddy!').css({'color':'green'});
-			$('#message').delay(45).fadeIn('fast');
 			
 		}
 		else {
@@ -122,7 +131,10 @@ var resetClick = function() {
 		// Update Modal Pop-up
 		$('#resetModal').modal('toggle')
 		
-		$('#missed').empty()
+		
+		$('#missed').empty();
+		$('#sets').empty();
+		
 		
 		for (var i = 0; i < sets.length; i++) {
 			var imgs = imageHandler(sets[i][0],sets[i][1],sets[i][2]);

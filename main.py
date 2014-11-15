@@ -28,10 +28,6 @@ from google.appengine.ext import db
 # Temporarily route to set
 app = WSGIApplication([
 	Route(r'/', handler='handlers.set.SetHandler', name='blog'),
-	Route(r'/newpost', handler='handlers.blog.NewPostHandler', name='post'),
-	Route(r'/player/<player:\w+>/update', handler='handlers.blog.ProgressHandler', name='update'),
-	Route(r'/player/<player:\w+>', handler='handlers.blog.PersonHandler', name='person',handler_method='person'),
-	Route(r'/create',handler='handlers.blog.PersonHandler',name='create'),
-	Route(r'/friends',handler='handlers.friends.FriendHandler',name='friends'),
-	Route(r'/set',handler='handlers.set.SetHandler',name='set')
+	Route(r'/set',handler='handlers.set.SetHandler',name='set'),
+	Route(r'/checkset',handler='handlers.set.SetHandler',name='checkSet',handler_method='checkSet')
 ], debug=True)
