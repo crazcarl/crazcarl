@@ -1,4 +1,7 @@
 var score = 0;
+var setStart;
+var clock;
+var clock_running = 0;
 // Right now this is going to work in continuous mode
 $(document).ready(function() {
 
@@ -15,6 +18,16 @@ $(document).ready(function() {
 	$('#subScore').click(scoreClick);
 	
 	setStart = Date.now();
+	clock = $('#clock').FlipClock(300,{
+		clockFace: 'MinuteCounter',
+		autoStart: 0,
+		countdown: true,
+		callbacks: {
+			stop: function () {
+            console.log('stopping the clock');
+			
+        }}
+	});
 
 });
 
@@ -33,6 +46,12 @@ var initialize = function() {
 
 var cellClick = function() {
 	
+	// Start timer
+	if (!clock_running) {
+		clock.start();
+		clock_running = 1;
+	}
+	
 	// (un)highlight the cell
 	$('#'+this.id).toggleClass('highlight');
 	
@@ -44,18 +63,54 @@ var cellClick = function() {
 		
 		// Get all three elements values and current tile #
 		var setAr = [];
+		var count = 0;
 		$('.highlight').each(function() {
 			var tempInt = parseInt(String($(this).attr('src').slice(13,15))); //TODO: update when using static images
 			setAr.push(tempInt);
 		});
+
+		// Only hit server for wins.
+		if (!evaluate(setAr)) {
+			$('#message').text('try harder').css({'color':'red'});
+			$('#message').delay(45).fadeIn('fast');
+		}
 		
-	
-		var success = evaluate(setAr);
+		// Verify legit set
+		var data = {"0":setAr[0],"1":setAr[1],"2":setAr[2]};
+		$.ajax({
+			type: "POST",
+			url: "/checkset",
+			data: data,
+			dataType: 'json',
+			success: function(data) {
+				// Un-highlight everything
+				$('.highlight').removeClass('highlight');
+				
+				if (data['result']) {
+					// Update Score
+					score = data['score'];
+					$('#score').text(score);
+					$('#message').text('yeah, buddy!').css({'color':'green'});
+					$('#message').delay(45).fadeIn('fast');
+					nextRound(setAr);
+				}
+				else {  //Just in case
+					$('#message').text('try harder').css({'color':'red'});
+					$('#message').delay(45).fadeIn('fast');
+				}
+
+			}
+		});
+	}
+}
+
 		
-		// Un-highlight everything
-		$('.highlight').removeClass('highlight');
-		
-		if (success) {
+// Initializes next round upon successful set	
+var nextRound = function(setAr) {
+
+			if (!setAr) {
+				return "";
+			}
 			
 			var newAr = [];
 			// Get current list of cards being used
@@ -64,10 +119,14 @@ var cellClick = function() {
 				newAr.push(tempInt);
 			});
 			
+			// Calculate time
+			var time = (Date.now() - setStart) / 1000;
+			setStart = Date.now();  // Reset Timer
+			// Calculate points
+			var points = 1;
 			
 			// Pick three new elements randomly from list and swap out with previous
 			generRand(newAr,15);
-			
 			
 			var tile0 = newAr.indexOf(setAr[0]);
 			$('#tile'+tile0).attr('src','/static/imgs/'+pad(newAr[12],2)+'.gif');
@@ -78,46 +137,20 @@ var cellClick = function() {
 			var tile2 = newAr.indexOf(setAr[2]);
 			$('#tile'+tile2).attr('src','/static/imgs/'+pad(newAr[14],2)+'.gif');
 			
-			// Calculate time
-			var time = (Date.now() - setStart) / 1000;
-			
-			setStart = Date.now();  // Reset Timer
-			
-			// Calculate points
-			var points = 1;
-			
 			// Log set to screen
-			
 			var imgs = imageHandler(setAr[0],setAr[1],setAr[2]);
 			
-			var setStr = '<tr><td style=\'width:50%\'>' + imgs + '</td>'     // imgs
+			var setStr = '<tr class="smallSet"><td style=\'width:50%\'>' + imgs + '</td>'     // imgs
 			setStr +=    '<td style=\'width:25%\'>' + time + '</td>'	     // seconds
 			setStr +=    '<td style=\'width:25%\'>' + points + '</td></tr>'  // points
-			$('#setsTable > tbody:last').append(setStr);
+			$('#setsTable > tbody:first').prepend(setStr);
 			
-			// Verify legit set
-			var data = {};
-			$.ajax({
-				type: "POST",
-				url: "/checkset",
-				data: data,
-				dataType: 'json',
-				success: function(data) {
-					score = data['score'];
-					$('#score').text(score);
-					$('#message').text('yeah, buddy!').css({'color':'green'});
-					$('#message').delay(45).fadeIn('fast');
-				}
-			});
+			if ($('.smallSet').length > 10) {
+				$('.smallSet').last().remove()
+			}
 			
-			
-		}
-		else {
-			$('#message').text('try harder').css({'color':'red'});
-			$('#message').delay(45).fadeIn('fast');
-		}
-	}
-};
+	};
+
 
 
 var resetClick = function() {
@@ -189,6 +222,7 @@ var scoreClick = function() {
 		 data: data,
 		 dataType: 'json',
 		 success: function(data) {
+		 
 			if (data['result']) {
 				$('#message').text('so good!');
 				$('#score').delay(100).text(0).css({'color':'green'}).fadeIn('slow');
@@ -199,8 +233,7 @@ var scoreClick = function() {
 			}
 			// Either way, rebuild leaderboard
 			buildLB(data);
-			
-			
+
 		 }
 	 });
 }
@@ -221,92 +254,6 @@ var buildLB = function(data) {
 		$('#leaderboard > tbody:last').append(htmlStr);
 	}
 
-}
-
-
-
-var evaluate = function(setAr) {
-
-
-	
-	var success = true;
-	
-	// evaluate fill
-	if ((fill(setAr[0]) == fill(setAr[1]) && fill(setAr[1]) != fill(setAr[2])) || 
-	    (fill(setAr[0]) != fill(setAr[1]) && fill(setAr[1]) == fill(setAr[2])) ||
-		(fill(setAr[0]) == fill(setAr[2]) && fill(setAr[0]) != fill(setAr[1])))
-		{  success = false;        }
-	
-	// evaluate qty
-	if ((qty(setAr[0]) == qty(setAr[1]) && qty(setAr[1]) != qty(setAr[2])) || 
-	    (qty(setAr[0]) != qty(setAr[1]) && qty(setAr[1]) == qty(setAr[2])) || 
-		(qty(setAr[0]) == qty(setAr[2]) && qty(setAr[0]) != qty(setAr[1])))
-		{  success = false;        }
-		
-	// evaluate shape
-	if ((shape(setAr[0]) == shape(setAr[1]) && shape(setAr[1]) != shape(setAr[2])) || 
-	    (shape(setAr[0]) != shape(setAr[1]) && shape(setAr[1]) == shape(setAr[2])) ||
-		(shape(setAr[0]) == shape(setAr[2]) && shape(setAr[0]) != shape(setAr[1])))
-		{   success = false;        }
-
-	// evaluate color
-	if ((color(setAr[0]) == color(setAr[1]) && color(setAr[1]) != color(setAr[2])) || 
-	    (color(setAr[0]) != color(setAr[1]) && color(setAr[1]) == color(setAr[2])) ||
-		(color(setAr[0]) == color(setAr[2]) && color(setAr[0]) != color(setAr[1])))
-		{   success = false;        }
-	
-	
-	return success;
-
-}
-
-
-// Notes on element values:
-//  N <= 27           = Solid
-//  N > 27 && <= 54   = Stripes
-//  N > 54            = Blank
-//  N % 3 == 1        = Qty 1
-//  N % 3 == 2        = Qty 2
-//  N % 3 == 0        = Qty 0
-//  N % 9 == 1,2,3    = Red
-//  N % 9 == 4,5,6    = Purple
-//  N % 9 == 7,8,0    = Green
-//  N % 27 == 1-9     = Squiggle
-//  N % 27 == 10-18   = Diamond
-//  N % 27 == 19-26,0 = Oval
-
-var fill = function(val) {
-	if (val <= 27)
-		return 1;  // Solid
-	if (val <= 54)
-		return 2;  // Stripes
-	return 3;	  // Blank
-}
-
-var qty = function(val) {
-	if (val % 3 == 1)
-		return 1;
-	if (val % 3 == 2)
-		return 2;
-	return 3;
-}
-
-var shape = function(val) {
-	val = val % 27;
-	if (val >= 1 && val <= 9)
-		return 1;
-	if (val >= 10 &&  val <= 18)
-		return 2;
-	return 3;
-}
-
-var color = function(val) {
-	val = val % 9
-	if (val >= 1 && val <= 3)
-		return 1
-	if (val >= 4 &&  val <= 6)
-		return 2
-	return 3
 }
 
 // Generates unique random numbers.
@@ -352,4 +299,72 @@ var setCheck = function() {
 	}
 	return sets;
 	
+}
+
+var evaluate = function(setAr) {
+	var success = true;
+	// evaluate fill
+	if ((fill(setAr[0]) == fill(setAr[1]) && fill(setAr[1]) != fill(setAr[2])) ||
+		(fill(setAr[0]) != fill(setAr[1]) && fill(setAr[1]) == fill(setAr[2])) ||
+		(fill(setAr[0]) == fill(setAr[2]) && fill(setAr[0]) != fill(setAr[1])))
+		{ success = false; }
+	// evaluate qty
+	if ((qty(setAr[0]) == qty(setAr[1]) && qty(setAr[1]) != qty(setAr[2])) ||
+		(qty(setAr[0]) != qty(setAr[1]) && qty(setAr[1]) == qty(setAr[2])) ||
+		(qty(setAr[0]) == qty(setAr[2]) && qty(setAr[0]) != qty(setAr[1])))
+		{ success = false; }
+	// evaluate shape
+	if ((shape(setAr[0]) == shape(setAr[1]) && shape(setAr[1]) != shape(setAr[2])) ||
+		(shape(setAr[0]) != shape(setAr[1]) && shape(setAr[1]) == shape(setAr[2])) ||
+		(shape(setAr[0]) == shape(setAr[2]) && shape(setAr[0]) != shape(setAr[1])))
+		{ success = false; }
+	// evaluate color
+	if ((color(setAr[0]) == color(setAr[1]) && color(setAr[1]) != color(setAr[2])) ||
+		(color(setAr[0]) != color(setAr[1]) && color(setAr[1]) == color(setAr[2])) ||
+		(color(setAr[0]) == color(setAr[2]) && color(setAr[0]) != color(setAr[1])))
+		{ success = false; }
+	return success;
+}
+// Notes on element values:
+// N <= 27 = Solid
+// N > 27 && <= 54 = Stripes
+// N > 54 = Blank
+// N % 3 == 1 = Qty 1
+// N % 3 == 2 = Qty 2
+// N % 3 == 0 = Qty 0
+// N % 9 == 1,2,3 = Red
+// N % 9 == 4,5,6 = Purple
+// N % 9 == 7,8,0 = Green
+// N % 27 == 1-9 = Squiggle
+// N % 27 == 10-18 = Diamond
+// N % 27 == 19-26,0 = Oval
+var fill = function(val) {
+	if (val <= 27)
+		return 1; // Solid
+	if (val <= 54)
+		return 2; // Stripes
+	return 3; // Blank
+}
+var qty = function(val) {
+	if (val % 3 == 1)
+		return 1;
+	if (val % 3 == 2)
+		return 2;
+	return 3;
+}
+var shape = function(val) {
+	val = val % 27;
+	if (val >= 1 && val <= 9)
+		return 1;
+	if (val >= 10 && val <= 18)
+		return 2;
+	return 3;
+}
+var color = function(val) {
+	val = val % 9
+	if (val >= 1 && val <= 3)
+		return 1
+	if (val >= 4 && val <= 6)
+		return 2
+	return 3
 }

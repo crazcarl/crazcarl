@@ -1,10 +1,15 @@
 {% include 'header.html' %}
 <link rel="stylesheet" href="/static/set.css" type="text/css">
+<link rel="stylesheet" href="/static/flipclock/css/flipclock.css">
+<script src="/static/flipclock/js/flipclock.js"></script>
 <script src="/static/set.js"></script>
 <body>
 	{% include 'top_bar.html' %}
 	<div class="container">
-		<h1> Continuous Set <small><a href="http://www.setgame.com/sites/default/files/instructions/SET%20INSTRUCTIONS%20-%20ENGLISH.pdf">How to play </a></small></h1>
+		<div class="row">
+			<span class="h1 col-md-6"> Continuous Set <br><small><a href="http://www.setgame.com/sites/default/files/instructions/SET%20INSTRUCTIONS%20-%20ENGLISH.pdf">How to play </a></small></span>
+			<span id="clock" class="col-md-6" style="width:40%"></span>
+		</div>
 		<div class="row">
 		<div class="jumbotron col-md-8 col-xs-8">
 		<div class="row">
