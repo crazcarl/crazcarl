@@ -29,5 +29,7 @@ from google.appengine.ext import db
 app = WSGIApplication([
 	Route(r'/', handler='handlers.set.SetHandler', name='blog'),
 	Route(r'/set',handler='handlers.set.SetHandler',name='set'),
-	Route(r'/checkset',handler='handlers.set.SetHandler',name='checkSet',handler_method='checkSet')
+	Route(r'/checkset',handler='handlers.set.SetHandler',name='checkSet',handler_method='checkSet'),
+	Route(r'/game',handler='handlers.set.SetHandler',name='game',handler_method='game'),
+	Route(r'/reset',handler='handlers.set.SetHandler',name='reset',handler_method='repopulate_tiles')
 ], debug=True)

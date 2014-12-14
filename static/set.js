@@ -6,7 +6,6 @@ var clock_running = 0;
 $(document).ready(function() {
 
 
-	initialize();
 
 	// tile clicked
 	$('.tileImg').click(cellClick);
@@ -28,20 +27,9 @@ $(document).ready(function() {
 			
         }}
 	});
+	
 
 });
-
-var initialize = function() {
-	// get 12 random numbers
-	var cards = []
-	cards = generRand(cards,12);
-	
-	// display them!
-	
-	for (var i = 0; i < 12; i++) {
-		$('#tile'+i).attr('src','/static/imgs/'+pad(cards[i],2)+'.gif');
-	}
-}
 
 
 var cellClick = function() {
@@ -73,6 +61,8 @@ var cellClick = function() {
 		if (!evaluate(setAr)) {
 			$('#message').text('try harder').css({'color':'red'});
 			$('#message').delay(45).fadeIn('fast');
+			$('.highlight').removeClass('highlight');
+			return "";
 		}
 		
 		// Verify legit set
@@ -92,7 +82,7 @@ var cellClick = function() {
 					$('#score').text(score);
 					$('#message').text('yeah, buddy!').css({'color':'green'});
 					$('#message').delay(45).fadeIn('fast');
-					nextRound(setAr);
+					nextRound(setAr,data['newBoard']);
 				}
 				else {  //Just in case
 					$('#message').text('try harder').css({'color':'red'});
@@ -106,28 +96,20 @@ var cellClick = function() {
 
 		
 // Initializes next round upon successful set	
-var nextRound = function(setAr) {
+var nextRound = function(setAr,newAr) {
 
 			if (!setAr) {
 				return "";
 			}
 			
-			var newAr = [];
-			// Get current list of cards being used
-			$('.tileImg').each(function() {
-				var tempInt = parseInt(String($(this).attr('src').slice(13,15)));
-				newAr.push(tempInt);
-			});
+
 			
 			// Calculate time
 			var time = (Date.now() - setStart) / 1000;
 			setStart = Date.now();  // Reset Timer
 			// Calculate points
 			var points = 1;
-			
-			// Pick three new elements randomly from list and swap out with previous
-			generRand(newAr,15);
-			
+			console.log(newAr);
 			var tile0 = newAr.indexOf(setAr[0]);
 			$('#tile'+tile0).attr('src','/static/imgs/'+pad(newAr[12],2)+'.gif');
 			
@@ -155,6 +137,7 @@ var nextRound = function(setAr) {
 
 var resetClick = function() {
 
+	var data = {};
 	var sets = setCheck();
 	if (sets.length > 0) {
 		// Update Message
@@ -174,16 +157,34 @@ var resetClick = function() {
 			var missedStr = '<div>' + imgs + '</div><br>'
 			$('#missed').append(missedStr);
 		}
+		data['resetScore'] = 1;
 	}
-	else
+	else {
 		message = 'good call';
+		}
 	$('#message').text(message).css({'color':'red'});
 	$('#message').delay(45).fadeIn('fast');
-	
-	initialize();
+
 	
 	setStart = Date.now();  // Reset Timer
 	
+	// Reset Board
+	$.ajax({
+	type: "get",
+	url: "/reset",
+	data: data,
+	dataType: 'json',
+	success: function(data) {
+		// Un-highlight everything
+		$('.highlight').removeClass('highlight');
+		cards = data['board'];
+		// Set new board
+		for (var i = 0; i < 12; i++) {
+			$('#tile'+i).attr('src','/static/imgs/'+pad(cards[i],2)+'.gif');
+		}
+	}
+	});
+
 
 }
 
@@ -203,17 +204,14 @@ var imageHandler = function(img1,img2,img3) {
 var scoreClick = function() {
 
 	// get current score and name
-	var score = parseInt($('#score').text());
 	var name = $('#username').val();
 	
-	if (score < 1 || !name) {
-		console.log(score);
-		console.log(name);
+	if (!name) {
 		$('#message').text('ugggh..');
 		return 0;
 	}
 	
-	var data = {'score':score,'name':name};
+	var data = {'name':name};
 	
 	// put it on server if in top 25
 	 $.ajax({
@@ -226,7 +224,6 @@ var scoreClick = function() {
 			if (data['result']) {
 				$('#message').text('so good!');
 				$('#score').delay(100).text(0).css({'color':'green'}).fadeIn('slow');
-				initialize();
 			}
 			else {
 				$('#message').text('not good enough').css({'color':'red'}).fadeIn('slow');

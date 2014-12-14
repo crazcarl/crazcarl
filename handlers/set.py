@@ -3,28 +3,43 @@ from google.appengine.ext import db
 import json
 import secret
 import hmac
+from google.appengine.api import memcache
+from random import randrange
+import logging
 
 class SetHandler(AppHandler):
 	def get(self):
-		init_cookies(self)
-		lb = LeaderBoard.all().order('-score').fetch(25)
-		self.render('setgame.html',lb=lb)
+	
+		# Create New Board
+		board = self.generate_board()
 		
+		# Create New Game
+		game = SetBoard(board = board)
+		game.put()
+		
+		# Update Cookie with game ID
+		self.response.headers.add_header('Set-Cookie', '%s=%s' % ('game',game.key().id()))
+		
+		lb = LeaderBoard.all().order('-score').fetch(25)
+		self.render('setgame.html',lb=lb,board=board)
+		
+	# Leaderboard Submission
 	def post(self):
 
-		score = self.getValidatedScore()
-		
-		try:
-			score = int(score)
-		except:
+		game = int(self.request.cookies.get('game'))
+		if not game:
+			return self.finished(lb,0)
+			
+		game = SetBoard.get_by_id(game)
+		# If score is 0
+		if not game.score:
 			return self.finished(lb,0)
 		
 		name = self.request.get('name')
 		
-		# If score is 0
-		if not score:
-			return self.finished(lb,0)
-		
+		score = game.score
+		game.score = 0  # Reset Score
+		game.put()
 		lb = LeaderBoard.all().order('-score').fetch(25)
 		# First 25, add to LB
 		if len(lb) < 25:
@@ -69,35 +84,105 @@ class SetHandler(AppHandler):
 		self.response.out.write(json.dumps(array))
 		
 	def checkSet(self):
+		# Get submitted elements
 		setAr = [int(self.request.get('0')),int(self.request.get('1')),int(self.request.get('2'))]
-		result = evaluate(setAr)
+		# Verify it is a set
+		result = evaluate(setAr)		
 		array = {}
 		if not result:
 			array['result'] = 0
 		else:
-			score = self.getValidatedScore()
-			score += 1
-			self.response.headers.add_header('Set-Cookie', '%s=%s' % ('score',make_secure_val(score)))
-			array['result']=1
-			array['score']=score
+			result = 0
+			# Verify tiles are on board and Update SetBoard entity
+			gameId = int(self.request.cookies.get('game'))
+			if not gameId:
+				return None;
+			game = SetBoard.get_by_id(gameId)
+			if game:
+				newBoard = self.updateGame(game,setAr)
+				if newBoard:
+					score = game.score
+					result = 1
+				array['result'] = result
+				array['score'] = score
+				array['newBoard'] = newBoard
 		self.response.headers['Content-Type'] = 'application/json'
 		self.response.out.write(json.dumps(array))
 		
+	# updateGame
+	# 1 Verifies set tiles are on board
+	# 2 Updates SetBoard entity with new score
+	# 3 Picks new tiles
+	# 4 Updates SetBoard entity with new tiles
+	# Returns new board if success. 0 if fail (for tiles not in board)
+	def updateGame(self,game,tiles):
 		
-	# Pass in score|hash. If valid, return score. Else, init cookies back to zero.
-	def getValidatedScore(self):
-		score = self.request.cookies.get('score')
-		if not score:
-			init_cookies(self)
+		if not game or not tiles:
 			return 0
+		
+		# 1
+		board = game.board
+		for tile in tiles:
+			if not tile in board:
+				return 0
+				
+		# 2
+		game.score += 1
+		
+		# 3
+		newBoard = generRand(board,15)
+		game.board = newBoard[:]
+		game.board[game.board.index(tiles[0])] = newBoard[-3]
+		game.board[game.board.index(tiles[1])] = newBoard[-2]
+		game.board[game.board.index(tiles[2])] = newBoard[-1]
+		game.board = game.board[0:12]
+		
+		game.put()
+		
+		return newBoard
+		
+		
+	def generate_board(self,board = []):
+		return generRand(board, 12)
+		
+	def repopulate_tiles(self):
+		# get game Id
+		gameId = int(self.request.cookies.get('game'))
+		if not gameId:
+			return None;
+		game = SetBoard.get_by_id(gameId)
+		
+		# Create New Board
+		board = self.generate_board()
+		
+		# Create New Game
+		game.board = board
+		
+		# Reset Score
+		rs = self.request.get('resetScore')
+		if rs:
+			game.score = 0;
 			
-		# Validate it
-		if not check_secure_val(score):
-			init_cookies(self)
-			return 0
+		game.put()
+		array = {}
+		array['board'] = board
+		self.response.headers['Content-Type'] = 'application/json'
+		self.response.out.write(json.dumps(array))
+
 		
-		return int(score.split('|')[0])
-		
+def generRand(arr,cnt):
+	if len(arr) == cnt:
+		arr = []
+	while len(arr) < cnt:
+		randomnumber = randrange(80)+1
+		found = False
+		for i in arr:
+			if i == randomnumber:
+				found = True
+				break
+		if not found:
+			arr.append(randomnumber)
+	return arr		
 		
 		
 def evaluate(setAr):
@@ -179,18 +264,6 @@ def color(val):
 	return 3
 		
 
-# Function to help with cookie hashing
-def hash_str(s):
-	return hmac.new(secret.SECRET, s).hexdigest()
-def check_secure_val(secure_val):
-	val = secure_val.split('|')[0]
-	if secure_val == make_secure_val(val):
-		return val
-def make_secure_val(val):
-	return '%s|%s' % (val, hash_str(str(val)))
-def init_cookies(self):
-	init_score = make_secure_val(0)
-	self.response.headers.add_header('Set-Cookie', '%s=%s' % ('score',init_score))
 		
 		
 
@@ -198,3 +271,7 @@ class LeaderBoard(db.Model):
 	name = db.StringProperty(required = True)
 	score = db.IntegerProperty(required = True)
 	created = db.DateTimeProperty(auto_now_add = True)
+	
+class SetBoard(db.Model):
+	board = db.ListProperty(required = True, item_type=int)
+	score = db.IntegerProperty(required = True, default = 0)
